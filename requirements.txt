@@ -1,0 +1,8 @@
+annotated-types==0.7.0
+certifi==2026.2.25
+charset-normalizer==3.4.6
+dataclass-wizard==0.39.1
+idna==3.11
+python-dotenv==1.2.2
+todoist_api_python==3.2.1
+urllib3==2.6.3
