@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import json
 import os
@@ -24,8 +25,8 @@ class Config:
     mapping_file: Path
 
 
-def load_config() -> Config:
-    load_dotenv()
+def load_config(env_file: str) -> Config:
+    load_dotenv(env_file)
 
     api_token = os.getenv("TODOIST_API_TOKEN", "").strip()
     vault_path = os.getenv("VAULT_PATH", "").strip()
@@ -417,7 +418,15 @@ def render_status_file(
 
 
 def main() -> None:
-    config = load_config()
+    parser = argparse.ArgumentParser(description="Sync Todoist tasks to Obsidian notes.")
+    parser.add_argument(
+        "--env-file",
+        default=".env",
+        help="Path to the environment file (default: .env)",
+    )
+    args = parser.parse_args()
+
+    config = load_config(args.env_file)
     output_dir = config.vault_path / config.output_relative_path
     generated_at = now_local_string()
     mapping = load_note_mapping(config.mapping_file)
