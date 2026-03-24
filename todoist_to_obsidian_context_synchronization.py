@@ -341,9 +341,11 @@ def render_project_map_file(
 
     for project_name in sorted(grouped.keys(), key=lambda s: s.lower()):
         related_note = wikilink_for_project(project_name, mapping)
+        project_id = grouped[project_name][0]["project_id"] if grouped[project_name] else "Unknown"
         lines.append(f"## {related_note or project_name}")
         lines.append("")
         lines.append(f"- todoist_project: {project_name}")
+        lines.append(f"- todoist_project_id: {project_id}")
         if related_note:
             lines.append(f"- related_note: {related_note}")
         lines.append("")
