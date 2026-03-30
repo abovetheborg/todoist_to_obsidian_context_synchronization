@@ -179,7 +179,7 @@ def render_context_file(
             "## Summary",
             "",
             f"- total_active_tasks: {len(tasks)}",
-            f"- total_projects: {len({t.get('project_id') for t in tasks})}",
+            f"- total_projects: {len(projects_by_id)}",
             "",
             "## Tasks",
             "",
@@ -323,9 +323,11 @@ def render_project_map_file(
     generated_at: str,
     host_name: str,
 ) -> str:
-    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    grouped: dict[str, list[dict[str, Any]]] = {p.get("name", "Unknown Project"): [] for p in projects_by_id.values()}
     for task in tasks:
         project_name = projects_by_id.get(task.get("project_id"), {}).get("name", "Unknown Project")
+        if project_name not in grouped:
+            grouped[project_name] = []
         grouped[project_name].append(task)
 
     lines = render_header("Todoist Project Map", generated_at, host_name)
@@ -335,13 +337,14 @@ def render_project_map_file(
             "## Summary",
             "",
             f"- mapped_projects: {len(grouped)}",
+            f"- total_labels: {len(labels_by_id)}",
             "",
         ]
     )
 
     for project_name in sorted(grouped.keys(), key=lambda s: s.lower()):
         related_note = wikilink_for_project(project_name, mapping)
-        project_id = grouped[project_name][0]["project_id"] if grouped[project_name] else "Unknown"
+        project_id = next((pid for pid, p in projects_by_id.items() if p.get("name") == project_name), "Unknown")
         lines.append(f"## {related_note or project_name}")
         lines.append("")
         lines.append(f"- todoist_project: {project_name}")
@@ -361,8 +364,9 @@ def render_project_map_file(
             for task in project_tasks:
                 due = task.get("due") or {}
                 section_name = sections_by_id.get(task.get("section_id"), {}).get("name", "")
+                label_names = [labels_by_id.get(label_id, label_id) for label_id in task.get("labels", [])]
                 lines.append(
-                    f"- {task.get('content')} | due: {due.get('date', '')} | section: {section_name} | url: {task.get('url', '')}"
+                    f"- {task.get('content')} | due: {due.get('date', '')} | section: {section_name} | labels: {format_list(label_names)} | url: {task.get('url', '')}"
                 )
         else:
             lines.append("- None")
